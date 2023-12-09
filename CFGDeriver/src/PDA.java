@@ -25,20 +25,20 @@ public class PDA {
 
         this.rules.get(leftSide).add(rightSide);
     }
-    public int deriveString(String inputString, int minSteps){
-        ArrayList< HashMap<Stack<Character>,Integer> > pdaCopies = new ArrayList<>();
+    public int deriveString(Stack<Character> inputString, int minSteps){
+        ArrayList< HashMap<Stack<Character>,Stack<Character>> > pdaCopies = new ArrayList<>();
         pdaCopies.add(
                 new HashMap<>(){
                     {
                         Stack<Character> currentStack = new Stack<>();
                         currentStack.clear();
-                        put(currentStack, 0);
+                        put(currentStack, inputString);
                     }
                 }
         );
 
 
-        int readIndex = 0;
+        Stack<Character> stringRead;
         boolean isAccepted = false;
         boolean isFirstCopy = false;
         int totalStepCount = 0;
@@ -46,9 +46,9 @@ public class PDA {
         while( !pdaCopies.isEmpty() ){
             // Start with next copy and start from the string where we created the next copy
             Stack<Character> currentStack = new Stack<>();
-            HashMap<Stack<Character>, Integer> nextCopy = pdaCopies.get(0);
+            HashMap<Stack<Character>, Stack<Character> > nextCopy = pdaCopies.get(0);
             currentStack = nextCopy.keySet().iterator().next();
-            readIndex = nextCopy.values().iterator().next();
+            stringRead = nextCopy.values().iterator().next();
             pdaCopies.remove(0);
 
             //For the first copy of PDA, we need to initialize. For rest copies, we will clone.
@@ -63,7 +63,7 @@ public class PDA {
             while(stepNumber <= minSteps){
                 Character stackTop = currentStack.pop();
                 if (stackTop.equals(this.STACK_END)){
-                    if ( readIndex == inputString.length() )
+                    if ( stringRead.isEmpty() )
                         isAccepted = true;
                     else{
                         isAccepted = false;
@@ -71,10 +71,9 @@ public class PDA {
                     }
                 }
                 // if the top of the stack is a terminal variable, we have to read from the input string
-                else if( (Character.isLowerCase(stackTop) || stackTop.equals(this.SPACE) || stackTop.equals(this.EPSILON) ) && readIndex != inputString.length() ){
-                    if( stackTop.equals(inputString.charAt(readIndex)) ){
-                        readIndex++;
-                        totalStepCount++;
+                else if( Character.isLowerCase(stackTop) || stackTop.equals(this.SPACE) || stackTop.equals(this.EPSILON)  ){
+                    if( !stringRead.isEmpty() && stringRead.peek().equals(stackTop) ){
+                        stringRead.pop();
                     }
                     else if ( stackTop.equals(this.EPSILON) )
                         continue;
@@ -86,27 +85,27 @@ public class PDA {
                 }
                 // if the top of the stack is a non-terminal variable, apply a rule
                 else if(Character.isUpperCase(stackTop)){
-                    boolean currentStackUpdated = false;
                     List<String> applyRules = this.rules.get(stackTop.toString());
                     for(int i = 0; i <= applyRules.size() -1; i++){
                         if( i == applyRules.size() -1 ){
                             addRuleInReverseOrder(applyRules.get(i), currentStack);
-                            stepNumber++;
                         }
                         else{
                             Stack<Character> newPdaStackCopy = (Stack<Character>)currentStack.clone();
                             addRuleInReverseOrder(applyRules.get(i), newPdaStackCopy);
-                            int finalReadIndex = readIndex;
+                            Stack<Character> finalReadString = (Stack<Character>)stringRead.clone();
                             pdaCopies.add(new HashMap<>() {
-                                {put(newPdaStackCopy, finalReadIndex);}
+                                {put(newPdaStackCopy, finalReadString);}
                             } );
                         }
                     }
+                    stepNumber++;
                 }
-
                 if(isAccepted)
                     break;
             }
+
+            totalStepCount += stepNumber;
             if(isAccepted)
                 break;
         }

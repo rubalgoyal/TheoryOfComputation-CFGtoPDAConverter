@@ -45,11 +45,20 @@ public class CFGDecoder {
                 break;
         }
 
-        int totalStepCount = this.pda.deriveString(inputString, minSteps);
+        int totalStepCount = this.pda.deriveString( putStringInReverse(inputString), minSteps);
         boolean isStringDerived = totalStepCount > -1 ? true : false;
         Result result = new Result(totalStepCount, isStringDerived);
 
         return result;
+    }
+
+    private Stack<Character> putStringInReverse(String inputString){
+        Stack<Character> stringStack = new Stack<>();
+        for(int i = inputString.length()-1; i >=0; i--){
+            stringStack.add(inputString.charAt(i));
+        }
+
+        return stringStack;
     }
 
 }
