@@ -1,9 +1,5 @@
-import java.util.Map;
-import java.util.List;
-import java.util.Stack;
-import java.util.HashMap;
-import java.util.ArrayList;
-import java.util.Random;
+import java.util.*;
+
 public class PDA {
     private Map<String, List<String>> rules;
     private Character EPSILON = '!';
@@ -25,7 +21,7 @@ public class PDA {
 
         this.rules.get(leftSide).add(rightSide);
     }
-    public int deriveString(Stack<Character> inputString, int minSteps){
+    public Result deriveString(Stack<Character> inputString, int minSteps){
         ArrayList< HashMap<Stack<Character>,Stack<Character>> > pdaCopies = new ArrayList<>();
         pdaCopies.add(
                 new HashMap<>(){
@@ -36,7 +32,6 @@ public class PDA {
                     }
                 }
         );
-
 
         Stack<Character> stringRead;
         boolean isAccepted = false;
@@ -110,12 +105,27 @@ public class PDA {
                 break;
         }
 
-        return isAccepted ? totalStepCount : -1;
+        Result result = new Result(totalStepCount, isAccepted);
+
+        return result;
     }
 
     private void addRuleInReverseOrder(String rule, Stack<Character> pdaStack){
         for(int i = rule.length()-1; i >=0; i--){
             pdaStack.add(rule.charAt(i));
         }
+    }
+
+    public int calculateStepB(String inputString){
+        int maxChildren = 0;
+        for (String key: this.rules.keySet()) {
+            if(this.rules.get(key).size() > maxChildren)
+                maxChildren = this.rules.get(key).size();
+        }
+
+        long maxParseTreeHeight = Math.round( Math.log(inputString.length()) / Math.log(2) );
+        double minSteps = (Math.pow((double) maxChildren, maxParseTreeHeight) - 1)/(maxChildren - 1);
+
+        return (int) Math.round(minSteps);
     }
 }

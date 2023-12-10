@@ -38,16 +38,13 @@ public class CFGDecoder {
                 minSteps = 100;
                 break;
             case 2:
-                minSteps = 100;
+                minSteps = this.pda.calculateStepB(inputString);
                 break;
             case 3:
                 minSteps = 2*inputString.length() - 1;
                 break;
         }
-
-        int totalStepCount = this.pda.deriveString( putStringInReverse(inputString), minSteps);
-        boolean isStringDerived = totalStepCount > -1 ? true : false;
-        Result result = new Result(totalStepCount, isStringDerived);
+        Result result = this.pda.deriveString( putStringInReverse(inputString), minSteps);
 
         return result;
     }
